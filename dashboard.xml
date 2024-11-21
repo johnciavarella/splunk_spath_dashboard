@@ -1,0 +1,62 @@
+<form version="1" theme="dark">
+  <label>SPATH checker</label>
+  <fieldset submitButton="true">
+    <input type="dropdown" token="sourcetype" searchWhenChanged="true">
+      <label>sourcetype</label>
+      <fieldForLabel>sourcetype</fieldForLabel>
+      <fieldForValue>sourcetype</fieldForValue>
+      <search>
+        <query>| metadata type=sourcetypes index=* | dedup sourcetype</query>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="field">
+      <label>field</label>
+      <fieldForLabel>field</fieldForLabel>
+      <fieldForValue>field</fieldForValue>
+      <search>
+        <query>index=* sourcetype=$sourcetype$ | fieldsummary | fields field</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+    <font color="red">
+          <h1>Usage</h1>
+        </font>
+        This dashboard tool is to give you the SPL as well as EVAL for props.conf so you can extract embeded JSON. 
+  </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Auto Extract SPATH</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=$sourcetype$ 
+| spath input=$field$ | fieldsummary | fields field | where NOT
+
+[ search index=* sourcetype=$sourcetype$  
+| fieldsummary | fields field ] 
+
+| eval SPL_search="spath input=$field$ path=$field$".field
+| eval eval_for_props= "EVAL-".field." = spath($field$, \"".field."\")"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
